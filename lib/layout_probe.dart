@@ -7,6 +7,14 @@ class GridLayout {
   final int cols;
 
   const GridLayout({required this.rows, required this.cols});
+
+  Map<String, dynamic> toJson() {
+    return {'rows': rows, 'cols': cols};
+  }
+
+  factory GridLayout.fromJson(Map<String, dynamic> json) {
+    return GridLayout(rows: json['rows'] as int, cols: json['cols'] as int);
+  }
 }
 
 class BlockLayout {
@@ -23,12 +31,40 @@ class BlockLayout {
     required this.size,
     required this.cell,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'index': index,
+      'centerOnBoard': {'dx': centerOnBoard.dx, 'dy': centerOnBoard.dy},
+      'topLeftOnBoard': {'dx': topLeftOnBoard.dx, 'dy': topLeftOnBoard.dy},
+      'size': {'width': size.width, 'height': size.height},
+      'cell': {'x': cell.x, 'y': cell.y},
+    };
+  }
+
+  factory BlockLayout.fromJson(Map<String, dynamic> json) {
+    return BlockLayout(
+      index: json['index'] as int,
+      centerOnBoard: Offset(
+        (json['centerOnBoard']['dx'] as num).toDouble(),
+        (json['centerOnBoard']['dy'] as num).toDouble(),
+      ),
+      topLeftOnBoard: Offset(
+        (json['topLeftOnBoard']['dx'] as num).toDouble(),
+        (json['topLeftOnBoard']['dy'] as num).toDouble(),
+      ),
+      size: Size(
+        (json['size']['width'] as num).toDouble(),
+        (json['size']['height'] as num).toDouble(),
+      ),
+      cell: Point<int>(json['cell']['x'] as int, json['cell']['y'] as int),
+    );
+  }
 }
 
-/// New result type: includes the measured block info plus a validity flag.
 class FlutrisPoint {
   final BlockLayout layout;
-  final bool isValid; // true = perfectly aligned, false = ambiguous/error
+  final bool isValid;
 
   const FlutrisPoint({required this.layout, required this.isValid});
 
@@ -37,6 +73,29 @@ class FlutrisPoint {
       layout: layout ?? this.layout,
       isValid: isValid ?? this.isValid,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'layout': layout.toJson(), 'isValid': isValid};
+  }
+
+  factory FlutrisPoint.fromJson(Map<String, dynamic> json) {
+    return FlutrisPoint(
+      layout: BlockLayout.fromJson(json['layout']),
+      isValid: json['isValid'] as bool,
+    );
+  }
+}
+
+extension FlutrisPointListJson on List<FlutrisPoint> {
+  List<Map<String, dynamic>> toJson() {
+    return map((e) => e.toJson()).toList();
+  }
+}
+
+extension FlutrisPointListFromJson on List<Map<String, dynamic>> {
+  List<FlutrisPoint> toFlutrisPoints() {
+    return map(FlutrisPoint.fromJson).toList();
   }
 }
 

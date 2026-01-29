@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutris/layout_probe.dart';
+
 /// Helper class for long lived Dart isolates
 ///
 /// Writing this out in my own words to help me remember it better.
@@ -12,11 +14,11 @@ import 'dart:isolate';
 /// receive data. Yes, mindblowing. the ReceivePort object has a send()
 /// function you may call within the isolate.
 
-typedef OnMeasuredFunction = String Function();
+typedef OnMeasuredFunction = List<FlutrisPoint> Function();
 
 class Worker {
   late final SendPort _sendToIsolate;
-  OnMeasuredFunction onMeasured = () => '{}';
+  OnMeasuredFunction onMeasured = () => [];
 
   void spawn({required Function(String) onData}) async {
     final receivePort = ReceivePort();
@@ -61,7 +63,7 @@ class Worker {
       print("data from http server isolate $data");
       final measuredData = onMeasured();
       print("data from flutter layout probe func $measuredData");
-      _sendToIsolate.send(measuredData);
+      _sendToIsolate.send(measuredData.toJson());
     });
   }
 }

@@ -12,8 +12,11 @@ void main() {
   final worker = Worker();
   worker.spawn(onData: (code) {});
 
+  // TODO: this is a pretty messy implementation. Gives me callback hell vibes.
+  // It's hard because I don't want to spawn the server inside the MainApp widget,
+  // because I'm concerned widget lifecycle weirdness will impact it.
   final viewModel = MainViewModel(
-    onMeasuredFunction: () => '{}',
+    onMeasuredFunction: () => [],
     onOnMeasuredFunctionChanged: (onMeasuredFunction) {
       worker.onMeasured = onMeasuredFunction;
     },
@@ -76,11 +79,11 @@ class MyApp extends StatelessWidget {
               },
             ),
             onMeasured: (blocks) {
-              for (final b in blocks) {
-                final output =
-                    'Block ${b.layout.index}: center=${b.layout.centerOnBoard} cell=${b.layout.cell}';
-                viewModel.updateOnMeasuredFunction(() => output);
-              }
+              // TODO: add logging here.
+              // for (final b in blocks) {
+              //   final output =
+              //       'Block ${b.layout.index}: center=${b.layout.centerOnBoard} cell=${b.layout.cell}';
+              viewModel.updateOnMeasuredFunction(() => blocks);
             },
           ),
         ),

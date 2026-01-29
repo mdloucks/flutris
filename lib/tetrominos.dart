@@ -3,6 +3,42 @@
 // content for quick testing in your EvalWidget harness.
 
 class Tetrominos {
+  static const block = '''
+class Block extends StatelessWidget {
+  const Block({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(border: Border.all(), color: Colors.green),
+    );
+  }
+}
+  ''';
+
+  // TODO: what an example user snipped would look like
+  static const userEnteredWidget = '''
+class UserEnteredWidget extends StatelessWidget {
+  const UserEnteredWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(children: [Block(), Block(), Block()]),
+        Column(children: [Block(), Block(), Block()]),
+        Block(),
+        Block(),
+      ],
+    );
+  }
+}
+  ''';
+
   static const tetrisI = '''
 class UserEnteredWidget extends StatelessWidget {
   const UserEnteredWidget();

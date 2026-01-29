@@ -3,62 +3,54 @@ import 'dart:isolate';
 
 import 'package:flutris/layout_probe.dart';
 import 'package:flutris/tetrominos.dart';
+import 'package:flutris/worker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_eval/flutter_eval.dart';
 
 void main() {
-  // Start an isolate that returns requests for grid validation
-  final isolate = Isolate.spawn((message) async {
-    var server = await HttpServer.bind(InternetAddress.anyIPv6, 8080);
-    await server.forEach((HttpRequest request) {
-      request.response.write('Hello, world!');
-      request.response.close();
-    });
-  }, "");
-
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  final worker = Worker();
+  worker.spawn(onData: (code) {});
+
+  final viewModel = MainViewModel(
+    onMeasuredFunction: () => '{}',
+    onOnMeasuredFunctionChanged: (onMeasuredFunction) {
+      worker.onMeasured = onMeasuredFunction;
+    },
+  );
+
+  runApp(MyApp(viewModel));
+}
+
+class MainViewModel extends ChangeNotifier {
+  String? userEnteredWidget;
+  OnMeasuredFunction onMeasuredFunction;
+  final Function(OnMeasuredFunction) onOnMeasuredFunctionChanged;
+
+  MainViewModel({
+    this.userEnteredWidget,
+    required this.onMeasuredFunction,
+    required this.onOnMeasuredFunctionChanged,
+  });
+
+  void updateOnMeasuredFunction(OnMeasuredFunction onMeasuredFunction) {
+    this.onMeasuredFunction = onMeasuredFunction;
+    onOnMeasuredFunctionChanged(onMeasuredFunction);
+  }
+
+  void setUserEnteredWidget(String userEnteredWidget) {
+    this.userEnteredWidget = userEnteredWidget;
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
   static const kBoardWidth = 100.0;
   static const kBoardHeight = 100.0;
 
-  static const block = '''
-class Block extends StatelessWidget {
-  const Block({super.key});
+  final MainViewModel viewModel;
 
-  @override
-  Widget build(BuildContext context) {
-
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(border: Border.all(), color: Colors.green),
-    );
-  }
-}
-  ''';
-
-  // TODO: boilerplate until user sends us correct block
-  static const userEnteredWidget = '''
-class UserEnteredWidget extends StatelessWidget {
-  const UserEnteredWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Column(children: [Block(), Block(), Block()]),
-        Column(children: [Block(), Block(), Block()]),
-        Block(),
-        Block(),
-      ],
-    );
-  }
-}
-  ''';
+  MyApp(this.viewModel);
 
   @override
   Widget build(BuildContext context) {
@@ -68,16 +60,26 @@ class UserEnteredWidget extends StatelessWidget {
           child: LayoutProbe(
             scale: 20,
             grid: const GridLayout(rows: 20, cols: 8),
-            child: UserRenderedWidget(
-              block: block,
-              blockScale: 2,
-              userEnteredWidget: Tetrominos.tetrisIVertical,
+            child: ListenableBuilder(
+              listenable: viewModel,
+              builder: (context, widget) {
+                return UserRenderedWidget(
+                  block: Tetrominos.block,
+                  blockScale: 2,
+                  // Here we pass the user widget String. This will cause a rebuild,
+                  // which triggers the onMeasured function, which will send the data
+                  // back to the server isolate, which will return a OK/ERR back to
+                  // the consumer.
+                  userEnteredWidget:
+                      viewModel.userEnteredWidget ?? Tetrominos.tetrisZ,
+                );
+              },
             ),
             onMeasured: (blocks) {
               for (final b in blocks) {
-                print(
-                  'Block ${b.layout.index}: center=${b.layout.centerOnBoard} cell=${b.layout.cell}',
-                );
+                final output =
+                    'Block ${b.layout.index}: center=${b.layout.centerOnBoard} cell=${b.layout.cell}';
+                viewModel.updateOnMeasuredFunction(() => output);
               }
             },
           ),

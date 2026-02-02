@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
                   // back to the server isolate, which will return a OK/ERR back to
                   // the consumer.
                   userEnteredWidget:
-                      viewModel.userEnteredWidget ?? Tetrominos.tetrisZ,
+                      viewModel.userEnteredWidget ?? Tetrominos.tetrisT,
                 );
               },
             ),

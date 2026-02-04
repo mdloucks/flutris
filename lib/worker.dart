@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutris/layout_probe.dart';
+import 'package:logging/logging.dart';
 
 /// Helper class for long lived Dart isolates
 ///
@@ -17,16 +18,22 @@ import 'package:flutris/layout_probe.dart';
 typedef OnMeasuredFunction = List<FlutrisPoint> Function();
 
 class Worker {
+  static final Logger _log = Logger('Worker');
+
   late final SendPort _sendToIsolate;
   OnMeasuredFunction onMeasured = () => [];
 
   void spawn({required Function(String) onData}) async {
+    _log.info('Spawning worker isolate');
+
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(
       // Here, we're sending the receive port "into" the isolate.
       // This way, when the isolate receives a request, it can send that
       // to the main isolate where Flutter can interpret it.
       (SendPort sendPort) async {
+        _log.info('Worker isolate started');
+
         // once the isolate starts up, we want to send back to the main Flutter
         // isolate a port. That way they can send the server messages. We
         // can already send them messages with the SendPort they pass in.
@@ -38,9 +45,9 @@ class Worker {
 
         void onRequestReceived(HttpRequest? request) {
           if (request == null) {
-            print("Could not fullfill request, null data");
+            _log.warning('Could not fulfill request, null data');
           } else {
-            print("data from main isolate: $serverData");
+            _log.fine('Sending response to HTTP client: $serverData');
           }
           // TODO: return success or not based on layout
           // NOTE: might have to attach an id with this and do more work around async
@@ -55,6 +62,7 @@ class Worker {
         }
 
         replyPort.listen((data) {
+          _log.fine('Received data from main isolate');
           serverData = data;
           if (serverRequest != null) {
             onRequestReceived(serverRequest);
@@ -62,27 +70,36 @@ class Worker {
         });
 
         // Start an isolate that returns handles grid validation
-        var server = await HttpServer.bind(InternetAddress.anyIPv6, 8080);
-        await server.forEach((HttpRequest request) async {
-          final body = await utf8.decoder.bind(request).join();
+        try {
+          var server = await HttpServer.bind(InternetAddress.anyIPv6, 8080);
+          _log.info('HTTP server bound on port 8080');
 
-          sendPort.send(body);
-          serverRequest = request;
-        });
+          await server.forEach((HttpRequest request) async {
+            _log.fine('HTTP request received');
+            final body = await utf8.decoder.bind(request).join();
+            _log.finer('HTTP request body received');
+
+            sendPort.send(body);
+            serverRequest = request;
+          });
+        } catch (e, st) {
+          _log.severe('Failed to start or run HTTP server', e, st);
+        }
       },
       receivePort.sendPort,
     );
 
     receivePort.listen((data) {
       if (data is SendPort) {
+        _log.info('Received SendPort from worker isolate');
         _sendToIsolate = data;
         return;
       }
       // here we got a request from the web server, so now we
       // interperet it with flutter and then send the resp back
-      print("data from http server isolate $data");
+      _log.fine('Received request data from HTTP server isolate');
       final measuredData = onMeasured();
-      print("data from flutter layout probe func $measuredData");
+      _log.finer('Measured layout data: $measuredData');
       _sendToIsolate.send(measuredData.toJson());
     });
   }

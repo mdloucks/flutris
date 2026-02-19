@@ -3,8 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:core/core.dart';
-import 'package:flutris/features/layout_validation/extensions.dart'
-    show FlutrisPointListJson;
+import 'package:flutris/features/layout_validation/extensions.dart';
 import 'package:logging/logging.dart';
 
 /// Helper class for long lived Dart isolates
@@ -73,8 +72,13 @@ class Worker {
 
         // Start an isolate that returns handles grid validation
         try {
-          var server = await HttpServer.bind(InternetAddress.anyIPv6, 8080);
-          _log.info('HTTP server bound on port 8080');
+          var server = await HttpServer.bind(
+            InternetAddress.anyIPv6,
+            CoreConstants.layoutEnginePort,
+          );
+          _log.info(
+            'HTTP server bound on port ${CoreConstants.layoutEnginePort}',
+          );
 
           await server.forEach((HttpRequest request) async {
             _log.fine('HTTP request received');

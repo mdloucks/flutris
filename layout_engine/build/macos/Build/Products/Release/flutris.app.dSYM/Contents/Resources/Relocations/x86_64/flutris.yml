@@ -1,0 +1,20 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/mloucks/development/flutris/layout_engine/build/macos/Build/Products/Release/flutris.app/Contents/MacOS/flutris'
+relocations:
+  - { offset: 0xCE4ED, size: 0x8, addend: 0x0, symName: '_$s7flutris17MainFlutterWindowC12awakeFromNibyyFTo', symObjAddr: 0x0, symBinAddr: 0x100001780, symSize: 0xF0 }
+  - { offset: 0xCE5FE, size: 0x8, addend: 0x0, symName: '_$s7flutris17MainFlutterWindowCMa', symObjAddr: 0x1A0, symBinAddr: 0x100001920, symSize: 0x14 }
+  - { offset: 0xCE6A6, size: 0x8, addend: 0x0, symName: '_$s7flutris17MainFlutterWindowC12awakeFromNibyyFTo', symObjAddr: 0x0, symBinAddr: 0x100001780, symSize: 0xF0 }
+  - { offset: 0xCE7B9, size: 0x8, addend: 0x0, symName: '_$s7flutris17MainFlutterWindowC11contentRect9styleMask7backing5deferACSo6CGRectV_So013NSWindowStyleH0VSo18NSBackingStoreTypeVSbtcfcTo', symObjAddr: 0xF0, symBinAddr: 0x100001870, symSize: 0x80 }
+  - { offset: 0xCE813, size: 0x8, addend: 0x0, symName: '_$s7flutris17MainFlutterWindowCfD', symObjAddr: 0x170, symBinAddr: 0x1000018F0, symSize: 0x30 }
+  - { offset: 0xCE937, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateC47applicationShouldTerminateAfterLastWindowClosedySbSo13NSApplicationCFTo', symObjAddr: 0x0, symBinAddr: 0x100001940, symSize: 0x10 }
+  - { offset: 0xCE9E1, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x80, symBinAddr: 0x1000019C0, symSize: 0x30 }
+  - { offset: 0xCEA2B, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateCMa', symObjAddr: 0xB0, symBinAddr: 0x1000019F0, symSize: 0x14 }
+  - { offset: 0xCEA78, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateC47applicationShouldTerminateAfterLastWindowClosedySbSo13NSApplicationCFTo', symObjAddr: 0x0, symBinAddr: 0x100001940, symSize: 0x10 }
+  - { offset: 0xCEA8C, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateC40applicationSupportsSecureRestorableStateySbSo13NSApplicationCFTo', symObjAddr: 0x10, symBinAddr: 0x100001950, symSize: 0x10 }
+  - { offset: 0xCEAB9, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateCACycfcTo', symObjAddr: 0x20, symBinAddr: 0x100001960, symSize: 0x30 }
+  - { offset: 0xCEAF4, size: 0x8, addend: 0x0, symName: '_$s7flutris11AppDelegateCfD', symObjAddr: 0x50, symBinAddr: 0x100001990, symSize: 0x30 }
+  - { offset: 0xCEC3E, size: 0x8, addend: 0x0, symName: '_$s7flutris19ResourceBundleClass33_E21C2E851F7EF887B3DA8A30A4185CC2LLCfD', symObjAddr: 0x0, symBinAddr: 0x100001A10, symSize: 0x20 }
+  - { offset: 0xCEC80, size: 0x8, addend: 0x0, symName: '_$s7flutris19ResourceBundleClass33_E21C2E851F7EF887B3DA8A30A4185CC2LLCMa', symObjAddr: 0x20, symBinAddr: 0x100001A30, symSize: 0x14 }
+  - { offset: 0xCEC9B, size: 0x8, addend: 0x0, symName: '_$s7flutris19ResourceBundleClass33_E21C2E851F7EF887B3DA8A30A4185CC2LLCfD', symObjAddr: 0x0, symBinAddr: 0x100001A10, symSize: 0x20 }
+...

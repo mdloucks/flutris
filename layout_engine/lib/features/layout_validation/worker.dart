@@ -2,11 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:core/core.dart';
 import 'package:flutris/features/layout_validation/extensions.dart'
     show FlutrisPointListJson;
-import 'package:flutris/features/layout_validation/layout_probe.dart';
-import 'package:flutris/features/layout_validation/models/flutris_point.dart'
-    show FlutrisPoint;
 import 'package:logging/logging.dart';
 
 /// Helper class for long lived Dart isolates

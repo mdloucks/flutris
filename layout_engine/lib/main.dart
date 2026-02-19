@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:core/core.dart';
 import 'package:flutris/features/layout_validation/layout_probe.dart';
-import 'package:flutris/features/layout_validation/models/grid_layout.dart';
 import 'package:flutris/features/layout_validation/tetrominos.dart';
 import 'package:flutris/features/layout_validation/worker.dart';
 import 'package:flutter/material.dart';

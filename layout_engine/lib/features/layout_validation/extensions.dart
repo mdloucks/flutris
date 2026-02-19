@@ -1,4 +1,4 @@
-import 'package:flutris/features/layout_validation/models/flutris_point.dart';
+import 'package:core/core.dart';
 
 extension FlutrisPointListJson on List<FlutrisPoint> {
   List<Map<String, dynamic>> toJson() {

@@ -1,8 +1,6 @@
 import 'dart:math';
 
-import 'package:flutris/features/layout_validation/block_layout.dart';
-import 'package:flutris/features/layout_validation/models/flutris_point.dart';
-import 'package:flutris/features/layout_validation/models/grid_layout.dart';
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 
 class LayoutProbe extends StatefulWidget {
@@ -71,7 +69,6 @@ class _LayoutProbeState extends State<LayoutProbe> {
 
     final blockElements = <Element>[];
     void visit(Element e) {
-      // detect Containers as blocks (same heuristic you had); adjust as needed
       if (e.widget is Container) blockElements.add(e);
       e.visitChildren(visit);
     }
@@ -98,7 +95,7 @@ class _LayoutProbeState extends State<LayoutProbe> {
     final layouts = <BlockLayout>[];
     for (var i = 0; i < blockElements.length; i++) {
       final render = blockElements[i].renderObject;
-      if (render is! RenderBox) continue; // skip if not layout box
+      if (render is! RenderBox) continue;
 
       final box = render as RenderBox;
       final topLeftGlobal = box.localToGlobal(Offset.zero);
@@ -113,38 +110,37 @@ class _LayoutProbeState extends State<LayoutProbe> {
       layouts.add(
         BlockLayout(
           index: i,
-          centerOnBoard: centerOnBoard,
-          topLeftOnBoard: topLeftOnBoard,
-          size: size,
+          centerDx: centerOnBoard.dx,
+          centerDy: centerOnBoard.dy,
+          topLeftDx: topLeftOnBoard.dx,
+          topLeftDy: topLeftOnBoard.dy,
+          width: size.width,
+          height: size.height,
           cell: cell,
         ),
       );
     }
 
-    // Determine validity per layout
-    const double tolerance = 0.001; // strict tolerance for "perfect" centering
+    const double tolerance = 0.001;
 
-    // Start with all valid, then mark invalid where rules fail.
     final points = List<FlutrisPoint>.generate(
       layouts.length,
       (i) => FlutrisPoint(layout: layouts[i], isValid: true),
     );
 
-    // 1) Check center inside expected center with tolerance
     for (var i = 0; i < layouts.length; i++) {
       final r = layouts[i];
       final expectedCenterX = (r.cell.x + 0.5) * cellW;
       final expectedCenterY = (r.cell.y + 0.5) * cellH;
 
-      final dx = (r.centerOnBoard.dx - expectedCenterX).abs();
-      final dy = (r.centerOnBoard.dy - expectedCenterY).abs();
+      final dx = (r.centerDx - expectedCenterX).abs();
+      final dy = (r.centerDy - expectedCenterY).abs();
 
       if (dx > tolerance || dy > tolerance) {
         points[i] = points[i].copyWith(isValid: false);
       }
     }
 
-    // 2) Find duplicates (multiple blocks mapped to same cell) and mark all in that cell invalid
     final Map<Point<int>, List<int>> cellToIndices = {};
     for (var i = 0; i < layouts.length; i++) {
       cellToIndices.putIfAbsent(layouts[i].cell, () => []).add(i);
@@ -158,21 +154,18 @@ class _LayoutProbeState extends State<LayoutProbe> {
       }
     }
 
-    // 3) If any layout size doesn't match cell size exactly, mark invalid (optional strictness)
     for (var i = 0; i < layouts.length; i++) {
       final r = layouts[i];
-      if ((r.size.width - cellW).abs() > tolerance ||
-          (r.size.height - cellH).abs() > tolerance) {
+      if ((r.width - cellW).abs() > tolerance ||
+          (r.height - cellH).abs() > tolerance) {
         points[i] = points[i].copyWith(isValid: false);
       }
     }
 
-    // Save last points (for painting) and report via callback
     _lastPoints = List.unmodifiable(points);
     _didReport = true;
     widget.onMeasured(_lastPoints);
 
-    // trigger repaint so painter can draw red/green markers
     setState(() {});
   }
 
@@ -233,9 +226,8 @@ class _GridPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), strokePaint);
     }
 
-    // draw measured points (center markers), green if valid, red if invalid
     for (final p in points) {
-      final center = p.layout.centerOnBoard;
+      final center = Offset(p.layout.centerDx, p.layout.centerDy);
       final paint = Paint()
         ..style = PaintingStyle.fill
         ..color = p.isValid
@@ -244,7 +236,6 @@ class _GridPainter extends CustomPainter {
       final radius = min(cellW, cellH) * 0.25;
       canvas.drawCircle(center, radius, paint);
 
-      // optional outline
       final outline = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
@@ -260,7 +251,6 @@ class _GridPainter extends CustomPainter {
         !_listEquals(oldDelegate.points, points);
   }
 
-  // simple list equality for points
   bool _listEquals(List<FlutrisPoint> a, List<FlutrisPoint> b) {
     if (identical(a, b)) return true;
     if (a.length != b.length) return false;
@@ -270,8 +260,10 @@ class _GridPainter extends CustomPainter {
       if (x.layout.index != y.layout.index ||
           x.layout.cell != y.layout.cell ||
           x.isValid != y.isValid ||
-          x.layout.centerOnBoard != y.layout.centerOnBoard)
+          x.layout.centerDx != y.layout.centerDx ||
+          x.layout.centerDy != y.layout.centerDy) {
         return false;
+      }
     }
     return true;
   }

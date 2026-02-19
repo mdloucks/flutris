@@ -24,4 +24,15 @@ class FlutrisPoint {
       isValid: json['isValid'] as bool,
     );
   }
+
+  @override
+  String toString() {
+    return 'FlutrisPoint('
+        'index: ${layout.index}, '
+        'cell: (${layout.cell.x}, ${layout.cell.y}), '
+        'center: (${layout.centerDx}, ${layout.centerDy}), '
+        'size: (${layout.width}x${layout.height}), '
+        'isValid: $isValid'
+        ')';
+  }
 }

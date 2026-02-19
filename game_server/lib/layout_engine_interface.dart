@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:core/core.dart';
 
-Future<List<MeasuredBlock>> runWidget({
+Future<List<FlutrisPoint>> runWidget({
   required String widget,
   required Uri uri,
 }) async {
@@ -36,7 +36,7 @@ Future<List<MeasuredBlock>> runWidget({
 
     return decoded
         .cast<dynamic>()
-        .map((e) => MeasuredBlock.fromJson((e as Map).cast<String, dynamic>()))
+        .map((e) => FlutrisPoint.fromJson((e as Map).cast<String, dynamic>()))
         .toList(growable: false);
   } finally {
     c.close();

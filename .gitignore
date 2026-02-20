@@ -1,0 +1,63 @@
+# =============================
+# Dart / Flutter
+# =============================
+
+# Build outputs
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.metadata
+
+# Generated
+**/*.g.dart
+**/*.freezed.dart
+
+# Flutter web
+**/web/build/
+
+# iOS
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Runner.xcworkspace/
+
+# macOS
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+**/macos/Runner.xcworkspace/
+
+# Android
+**/android/.gradle/
+**/android/app/build/
+**/android/build/
+**/android/local.properties
+**/*.keystore
+
+# Windows / Linux
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# IntelliJ / VSCode
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# =============================
+# Misc
+# =============================
+*.cache
+*.dill
+*.track.dill
+kernel_blob.bin

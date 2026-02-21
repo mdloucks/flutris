@@ -1,8 +1,38 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:client/features/layout/data/services/layout_service.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
+const _defaultText = """
+/// --- Rules ---
+///
+/// 1. Use Block() to create blocks on screen.
+/// 2. Submitted widget must be named "UserEnteredWidget"
+/// 3. Your code must compile.
+/// 4. Your blocks must fit into the grid. Red blocks are invalid, green blocks are valid.
+/// 5. No imports.
+///
+/// --- Rules ---
+class UserEnteredWidget extends StatelessWidget {
+  const UserEnteredWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(children: [Block(), Block(), Block()]),
+        Column(children: [Block(), Block(), Block()]),
+        Block(),
+        Block(),
+      ],
+    );
+  }
+}
+    """;
 
 class LayoutTestWidget extends StatefulWidget {
   const LayoutTestWidget({super.key});
@@ -12,7 +42,8 @@ class LayoutTestWidget extends StatefulWidget {
 }
 
 class _LayoutTestWidgetState extends State<LayoutTestWidget> {
-  final _ds = LayoutServiceWebsocket();
+  final _ds = GameServerServiceWebsocket();
+  final _textFieldController = TextEditingController(text: _defaultText);
 
   List<FlutrisPoint> _points = const [];
   String _lastError = '';
@@ -21,8 +52,14 @@ class _LayoutTestWidgetState extends State<LayoutTestWidget> {
   final double _scale = 20;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _ds.disconnect();
+    _textFieldController.dispose();
     super.dispose();
   }
 
@@ -31,34 +68,48 @@ class _LayoutTestWidgetState extends State<LayoutTestWidget> {
 
     await _ds.connect(
       uri: uri,
-      onPoints: (points) {
-        if (!mounted) return;
-        setState(() {
-          _points = points;
-          _lastError = '';
-        });
-      },
       onError: (e) {
         if (!mounted) return;
         setState(() {
           _lastError = e.toString();
         });
       },
+      onDone: () => CoreLoggers.client.info('Connected to websocket'),
+      onData: (WsMessage data) {
+        print('received data $data');
+        switch (data) {
+          case WsMessageUserEnteredWidget():
+            break;
+          case WsMessageValidateLayout():
+            CoreLoggers.client.fine(
+              "Received WsMessageValidateLayout from gameServer (isValid: ${data.isLayoutValid})",
+            );
+            if (!mounted) return;
+            setState(() {
+              _points = data.points;
+              _lastError = '';
+            });
+        }
+      },
     );
 
-    final mockPayload = {
-      'grid': _grid.toJson(),
-      'layout': {
-        'index': 0,
-        'centerOnBoard': {'dx': 40.0, 'dy': 20.0},
-        'topLeftOnBoard': {'dx': 30.0, 'dy': 10.0},
-        'size': {'width': 20.0, 'height': 20.0},
-        'cell': {'x': 2, 'y': 1},
-      },
-      'isValid': true,
-    };
+    /*
 
-    _ds.sendJson(mockPayload);
+    */
+
+    final userEnteredWidgetMessage = WsMessageUserEnteredWidget(
+      userEnteredWidget: _textFieldController.text,
+    );
+    final message = jsonEncode(userEnteredWidgetMessage);
+    var uuid = Uuid();
+    final envelope = WsEnvelope(
+      version: 0,
+      type: MessageType.userEnteredWidget,
+      message: message,
+      id: uuid.v4(),
+    );
+
+    _ds.sendEnvelope(envelope);
   }
 
   @override
@@ -77,6 +128,23 @@ class _LayoutTestWidgetState extends State<LayoutTestWidget> {
             const SizedBox(height: 12),
             if (_lastError.isNotEmpty)
               Text(_lastError, textAlign: TextAlign.center),
+            SizedBox(
+              width: 600,
+              height: 300,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _textFieldController,
+                  enableInteractiveSelection: true,
+                  maxLines: 32,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    error: Text(_lastError),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

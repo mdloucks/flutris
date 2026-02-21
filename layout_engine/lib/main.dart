@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  CoreLoggers.init();
   final worker = Worker();
   worker.spawn();
 
@@ -71,7 +72,7 @@ class LayoutProbeContainer extends StatelessWidget {
                   // back to the server isolate, which will return a OK/ERR back to
                   // the consumer.
                   userEnteredWidget:
-                      viewModel.userEnteredWidget ?? Tetrominos.tetrisT,
+                      viewModel.userEnteredWidget ?? Tetrominos.tetrisIVertical,
                 );
               },
             ),

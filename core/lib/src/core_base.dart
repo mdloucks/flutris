@@ -2,3 +2,4 @@
 
 export './data/models/models.dart';
 export './data/constants.dart';
+export './utils/utils.dart';

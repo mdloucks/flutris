@@ -3,8 +3,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:core/core.dart';
-import 'package:flutris/features/layout_validation/extensions.dart';
-import 'package:logging/logging.dart';
 
 /// Helper class for long lived Dart isolates
 ///
@@ -19,13 +17,11 @@ import 'package:logging/logging.dart';
 typedef OnMeasuredFunction = List<FlutrisPoint> Function();
 
 class Worker {
-  static final Logger _log = Logger('Worker');
-
   late final SendPort _sendToIsolate;
   OnMeasuredFunction onMeasured = () => [];
 
   void spawn() async {
-    _log.info('Spawning worker isolate');
+    CoreLoggers.layoutEngine.info('Spawning worker isolate');
 
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(
@@ -33,7 +29,7 @@ class Worker {
       // This way, when the isolate receives a request, it can send that
       // to the main isolate where Flutter can interpret it.
       (SendPort sendPort) async {
-        _log.info('Worker isolate started');
+        CoreLoggers.layoutEngine.info('Worker isolate started');
 
         // once the isolate starts up, we want to send back to the main Flutter
         // isolate a port. That way they can send the server messages. We
@@ -45,10 +41,20 @@ class Worker {
         HttpRequest? serverRequest;
 
         void onRequestReceived(HttpRequest? request) {
+          CoreLoggers.layoutEngine.info('Request received');
+          CoreLoggers.layoutEngine.info("headers ${request?.headers}");
+          CoreLoggers.layoutEngine.info(
+            "content length ${request?.contentLength}",
+          );
+
           if (request == null) {
-            _log.warning('Could not fulfill request, null data');
+            CoreLoggers.layoutEngine.warning(
+              'Could not fulfill request, null data',
+            );
           } else {
-            _log.fine('Sending response to HTTP client: $serverData');
+            CoreLoggers.layoutEngine.fine(
+              'Sending response to HTTP client: $serverData',
+            );
           }
           // TODO: return success or not based on layout
           // NOTE: might have to attach an id with this and do more work around async
@@ -63,7 +69,7 @@ class Worker {
         }
 
         replyPort.listen((data) {
-          _log.fine('Received data from main isolate');
+          CoreLoggers.layoutEngine.fine('Received data from main isolate');
           serverData = data;
           if (serverRequest != null) {
             onRequestReceived(serverRequest);
@@ -76,20 +82,24 @@ class Worker {
             InternetAddress.anyIPv6,
             CoreConstants.layoutEnginePort,
           );
-          _log.info(
+          CoreLoggers.layoutEngine.info(
             'HTTP server bound on port ${CoreConstants.layoutEnginePort}',
           );
 
           await server.forEach((HttpRequest request) async {
-            _log.fine('HTTP request received');
+            CoreLoggers.layoutEngine.fine('HTTP request received');
             final body = await utf8.decoder.bind(request).join();
-            _log.finer('HTTP request body received');
+            CoreLoggers.layoutEngine.finer('HTTP request body received');
 
             sendPort.send(body);
             serverRequest = request;
           });
         } catch (e, st) {
-          _log.severe('Failed to start or run HTTP server', e, st);
+          CoreLoggers.layoutEngine.severe(
+            'Failed to start or run HTTP server',
+            e,
+            st,
+          );
         }
       },
       receivePort.sendPort,
@@ -97,15 +107,17 @@ class Worker {
 
     receivePort.listen((data) {
       if (data is SendPort) {
-        _log.info('Received SendPort from worker isolate');
+        CoreLoggers.layoutEngine.info('Received SendPort from worker isolate');
         _sendToIsolate = data;
         return;
       }
       // here we got a request from the web server, so now we
       // interperet it with flutter and then send the resp back
-      _log.fine('Received request data from HTTP server isolate');
+      CoreLoggers.layoutEngine.fine(
+        'Received request data from HTTP server isolate',
+      );
       final measuredData = onMeasured();
-      _log.finer('Measured layout data: $measuredData');
+      CoreLoggers.layoutEngine.finer('Measured layout data: $measuredData');
       _sendToIsolate.send(measuredData.toJson());
     });
   }
